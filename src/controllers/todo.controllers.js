@@ -41,13 +41,47 @@ const getTodoById = async(req, res) => {
 
 
 const updateTodo = async(req, res) => {
-    const {id} = req.params
-    res.send(`This will update a todo by id ${id}`)
+    try {
+        const {id} = req.params
+    const {content, complete} = req.body
+    if(!content && typeof complete === 'undefined'){
+        return res.status(400).json({message: "No content or completation status provided for update"})
+    }
+    const updateFields = {};
+    if(content){
+        updateFields.content = content;
+    }
+    if(typeof complete !== 'undefined'){
+        updateFields.complete = complete;
+    }
+    const todo = await Todo.findByIdAndUpdate(
+        id,
+        {$set: updateFields},
+        {new: true}
+    );
+    if(!todo){
+        return res.status(404).json({message: "Todo not found"})
+    }
+    return res.status(200).json(todo)
+    } catch (error) {
+        console.log("Error updating todo", error);
+        return res.status(500).json({message: "Failed to update the todo"})
+    }
 }
 
+
 const deleteTodo = async(req, res) => {
-    const {id} = req.params
-    res.send(`This will delete a todo by id ${id}`)
+    try {
+        const {id} = req.params
+        const todo = await Todo.findByIdAndDelete(id)
+    if(!todo){
+        return res.status(404).json({message: "Todo nod found"})
+    }
+    return res.status(200).json(todo)
+    } catch (error) {
+        console.error("Error deleting todo:", error)
+        return res.status(500).json({message: "Failed to delete todo"})
+    }
 }
 
 
